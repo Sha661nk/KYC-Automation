@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="Styles.css">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+  $(document).ready(function() { 
+  
+  var resend_counter = 0;
+  var otp_failure_counter = 0;
+  var flag1 = "0";
+  var flag2 = "0";
+  var flag3 = "0";
+  var loginsignupstatus = "";
+  var connection = new ActiveXObject("ADODB.Connection");  
+  var fname = "";
+  var _gender = ""; 
+  var dname = "";
+  var adno; 
+  var _emailid = "";
+  var _dob = "";
+  var acctype = ""; 
+  var _contactno = "";
+  var _add = ""; 
+  var postal = "";
+  var application_number;
+  //var connectionstring = "Data Source=DESKTOP-I2GJSC9;Initial Catalog=SOLVATHON;Persist Security Info=True;User ID=sa;Password=Iscream@1997;Provider=SQLOLEDB"; 
+  var connectionstring = "Provider=MSOLEDBSQL;Server=LTI-MEAN-63\\SQLEXPRESS;Database=SOLVATHON;Trusted_Connection=yes"
+  connection.Open(connectionstring);
+  
+  $("#signup").click(function(){
+	loginsignupstatus = "signup";
+	$('#login').prop('disabled',true);
+    $("#basic-details").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#login").click(function(){
+	loginsignupstatus = "login";
+	//Remove Required Fields 
+	$("#dropdown").removeAttr('required');
+	$("#fullname").removeAttr('required');
+	$("#dependentname").removeAttr('required');
+	$("#adhaaarcardnumber").removeAttr('required');
+	$("#email-address").removeAttr('required');
+	$("#DOB").removeAttr('required');
+	$("#account-select").removeAttr('required');
+	$("#phone").removeAttr('required');
+	$("#otp").removeAttr('required');
+	$("#line1").removeAttr('required');
+	$("#town").removeAttr('required');
+	$("#postalcode").removeAttr('required');
+	$('#signup').prop('disabled',true);
+    $("#logindetails").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#loginapp").click(function(){
+	application_number = $("#applno").val();
+	//FETCH Details of Customer from DB
+	var resultset = new ActiveXObject("ADODB.Recordset");
+	var searchquery = "SELECT * from CustomerDetailsSolvathon where [Application_Number] = '"+application_number+"'";
+	resultset.Open(searchquery, connection);
+	//CHECK whether application is valid or not
+	if(!resultset.eof)
+	{
+		fname = resultset.fields(0).value;
+		_gender = resultset.fields(1).value;
+		dname = resultset.fields(2).value;
+		adno = resultset.fields(3).value;
+		_emailid = resultset.fields(4).value;
+		_dob = resultset.fields(5).value;
+		acctype = resultset.fields(6).value;
+		_contactno = resultset.fields(7).value;
+		_add = resultset.fields(8).value;
+		var addlength = _add.length;
+		addlength = addlength - 5;
+		_add = _add.substring(0,addlength);
+		addlength = _add.length;
+		var lowerlimit = addlength - 8;
+		var upperlimit = addlength - 1;
+		postal = _add.substring(lowerlimit,upperlimit);
+		_add = _add.substring(0, lowerlimit);
+		var lastspace = _add.lastIndexOf(' ');
+		var township = _add.substring(lastspace + 1);
+		_add = _add.substr(0, lastspace);
+		if(_gender == "Male")
+		{
+			$('#dropdown').val("Mr");
+		}
+		else
+		{
+			$('#dropdown').val("Mrs");
+		}
+		//UPDATE texboxes with fetched values
+		$("#basic-details").show('slide');
+		$('#fullname').val(fname);
+		$('#dependentname').val(dname);
+		$('#adhaaarcardnumber').val(adno);
+		$('#email-address').val(_emailid);
+		$('#DOB').val(_dob);
+		$('#account-select').val(acctype);
+		$('#phone').val(_contactno);
+		$('#country').val("India");
+		$('#line1').val(_add);
+		$('#postalcode').val(postal);
+		$('#town').val(township);
+		$('#show-otp').show('slide');
+		//$("#photo-upload").show('slide');
+		//$("#adhaar-upload").show('slide');
+		//$("#get-consent").show('slide');
+		$('#loginapp').prop('disabled',true);
+		window.scrollTo(0,document.body.scrollHeight);
+	}
+	else
+	{
+		alert("Application doesn't exist");
+	}
+	resultset.Close();;
+  });
+  
+  $("#applno").change(function() {
+    $("#loginapp").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#phone").change(function() {
+    $("#show-otp").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#show-otp").click(function(){
+	var tempcontact = $("#phone").val();
+	if(tempcontact.length!=10)
+	{
+		alert("Invalid Contact Number");
+	}
+	else
+	{
+		$("#otp-check").show('slide');
+		$("#resend-otp").show('slide');
+		$('.show_hide').prop('disabled',true);
+		window.scrollTo(0,document.body.scrollHeight);
+	}
+    
+  });
+  
+  $("#resend-otp").click(function(){
+	resend_counter=resend_counter+1;
+	if(resend_counter == 3)
+	{
+		$('.show_hide2').prop('disabled',true);
+		alert("Maximum OTPs sent");
+	}
+  });
+  
+  $("#otp").change(function() {
+    $("#show-address").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#show-address").click(function(){
+  var otp_value = $("#otp").val();
+  if(otp_value == "123456")
+  {
+	$('.show_hide2').prop('disabled',true);
+	$('.show_hide3').prop('disabled',true);
+	$("#address-history").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  }
+  else
+  {
+	otp_failure_counter=otp_failure_counter+1;
+	alert("Invalid OTP");
+	if(otp_failure_counter==3)
+	{
+		$('.show_hide2').prop('disabled',true);
+		$('.show_hide3').prop('disabled',true);
+		alert("Maximum Invalid OTPs entered. Please try again later.");
+	}
+  }
+  });
+  
+  $("#yes").click(function(){
+    $("#current-address").show('slide');
+    $("#non-uk").hide();
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#no").click(function(){
+    $("#non-uk").show('slide');
+    $("#current-address").hide();
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#yes-prev").click(function(){
+    $("#previous-address").show('slide');
+    $("#document-upload").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+   $("#no-prev").click(function(){
+    $("#document-upload").show('slide');
+    $("#previous-address").hide();
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#document-upload").click(function(){
+    $("#document-section").show('slide');
+	$("#photo-upload").show('slide');
+	$("#adhaar-upload").show('slide');
+	$("#get-consent").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#photo-upload").click(function(){
+    alert("Image uploaded successfully");
+	flag1="1";
+	if(flag3=="1" && flag2=="1")
+	{
+		$("#your-consent").show('slide');
+		window.scrollTo(0,document.body.scrollHeight);
+	}
+	var imagex = document.getElementById("photoimg").src;
+	//$("#photo-upload").prop('disabled',true);
+  });
+  
+  $("#adhaar-upload").click(function(){
+    alert("Adhaar Front Side Image uploaded successfully");
+	flag2="1";
+	if(flag1=="1" && flag3=="1")
+	{
+		$("#your-consent").show('slide');
+		window.scrollTo(0,document.body.scrollHeight);
+	}
+	//$("#adhaar-upload").prop('disabled',true);
+  });
+  
+  $("#get-consent").click(function(){
+	flag3="1";
+	alert("Adhaar Back Side Image uploaded successfully");
+	if(flag1=="1" && flag2=="1")
+	{
+		$("#your-consent").show('slide');
+		window.scrollTo(0,document.body.scrollHeight);
+	}
+  });
+  
+  $("#credit-click").click(function() {
+    $("#info-request").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $("#info-click").click(function() {
+    $("#submit-app").show('slide');
+    window.scrollTo(0,document.body.scrollHeight);
+  });
+  
+  $('#app-form').on('submit', function(){
+  
+	if(loginsignupstatus == "signup")
+	{
+		insertdata();
+	}
+	else if(loginsignupstatus == "login")
+	{
+		
+	var name = $("#fullname").val();
+	var dependent = $("#dependentname").val();
+	console.log(dependent);
+	var adhaarnumber = $("#adhaaarcardnumber").val();
+	//CHECK whether ADHAAR number is valid or not
+	if(adhaarnumber.length != 12)
+	{
+		alert("Adhaar Card Number not Valid");
+		return;
+	}
+	console.log(adhaarnumber);
+	var adhaarint = parseInt(adhaarnumber);
+	var emailid = $("#email-address").val();
+	console.log(emailid);
+	var dateofbirth = $("#DOB").val();
+	console.log(dateofbirth);
+	var accountinfo = $("#account-select").val();
+	console.log(accountinfo);
+	var contact = $("#phone").val();
+	console.log(contact);
+	var _line2 = $("#line2").val();
+	if(_line2!="")
+	var address = $("#line1").val() + " " + $("#line2").val() + " " + $("#town").val() + " " + $("#postalcode").val() + " India";
+	else
+	var address = $("#line1").val() + " " + $("#town").val() + " " + $("#postalcode").val() + " India";
+	console.log(address);
+	var x = $("#fullname").val();
+	x = x.toUpperCase();
+	x = x.substring(0,4);
+	var y = $("#adhaaarcardnumber").val();
+	y = y.substring(8,12);
+	var appno = x + y;
+	console.log(appno);
+	var title = $("#dropdown").val();
+	var gender = "";
+	if(title == "Mr")
+	{
+		gender = "Male";
+	}
+	else
+	{
+		gender = "Female";
+	}
+	
+	//UPDATE LOGIC TO BE WRITTEN
+		//var rsltset = new ActiveXObject("ADODB.Recordset");
+		//var updatequery = "UPDATE CustomerDetailsSolvathon SET [Full Name] = 'Ragini Chakraborty', [Gender] = 'Male', [Father/Spouse Name] = 'Budhendu Chakraborty', [Adhaar Number] = 963852147753, [Email ID] = 'ragini@gmail.com', [DOB] = '22/10/1955', [Account Type] = 'Current', [Contact Number] = '8697015516', [Address] = 'Anima Villa SN Banerjee Road Barrackpore Kolkata India 700120' WHERE [Application Number] = 'RAGI7753'";
+		//rsltset.Open(updatequery, connection);
+		//rsltset.Close();
+		//connection.Close();
+		
+		
+		//Send DATA through API
+		var data = JSON.stringify({
+		"fullname": name,
+		"dependentname": dependent,
+		"gender": gender,
+		"adhaar": adhaarint,
+		"email": emailid,
+		"dob": dateofbirth,
+		"account": accountinfo,
+		"contact": contact,
+		"address": address,
+		"applicationno": application_number
+		});
+
+		var xhr = new XMLHttpRequest();
+		xhr.withCredentials = true;
+
+		xhr.addEventListener("readystatechange", function() {
+		if(this.readyState === 4) {
+		console.log(this.responseText);
+		}
+		});
+
+		xhr.open("POST", "http://127.0.0.1:5000/validation");
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.send(data);
+		//Show message to customer
+		alert("Your documents have been submitted successfully. We will get back to you soon.");
+	}
+	
+    //var arr = $(this).serializeArray();
+    //console.log(arr);
+    return false;
+
+  });
+  
+  function insertdata(){
+  
+	var name = $("#fullname").val();
+	console.log(name);
+	var dependent = $("#dependentname").val();
+	console.log(dependent);
+	var adhaarnumber = $("#adhaaarcardnumber").val();
+	if(adhaarnumber.length != 12)
+	{
+		alert("Adhaar Card Number not Valid");
+		return;
+	}
+	console.log(adhaarnumber);
+	var adhaarint = parseInt(adhaarnumber);
+	var emailid = $("#email-address").val();
+	console.log(emailid);
+	var dateofbirth = $("#DOB").val();
+	console.log(dateofbirth);
+	var accountinfo = $("#account-select").val();
+	console.log(accountinfo);
+	var contact = $("#phone").val();
+	console.log(contact);var _line2 = $("#line2").val();
+	if(_line2!="")
+	var address = $("#line1").val() + " " + $("#line2").val() + " " + $("#town").val() + " " + $("#postalcode").val() + " India";
+	else
+	var address = $("#line1").val() + " " + $("#town").val() + " " + $("#postalcode").val() + " India";
+	console.log(address);
+	var x = $("#fullname").val();
+	x = x.toUpperCase();
+	x = x.substring(0,4);
+	var y = $("#adhaaarcardnumber").val();
+	y = y.substring(8,12);
+	var appno = x + y;
+	console.log(appno);
+	var title = $("#dropdown").val();
+	var gender = "";
+	if(title == "Mr")
+	{
+		gender = "Male";
+	}
+	else
+	{
+		gender = "Female";
+	}  
+	
+    var rs = new ActiveXObject("ADODB.Recordset");
+	var rs2 = new ActiveXObject("ADODB.Recordset");
+	var query = "INSERT INTO CustomerDetailsSolvathon VALUES ('" +name + "','" + gender + "','" + dependent + "'," + adhaarnumber + ",'" + emailid + "','" + dateofbirth + "', '" + accountinfo + "', '" + contact + "', '" + address + "', '', '" +otp_failure_counter.toString()+ "' , '', '', '" + appno + "')";
+    //Check whether User is existing user or not
+	rs.Open("SELECT * From CustomerDetailsSolvathon WHERE  [Adhaar_Number] = "+adhaarnumber, connection);
+	if(rs.eof)
+	{	
+		//Push DATA in DB
+		rs2.Open(query, connection);
+		//Send DATA through API
+		var data = JSON.stringify({
+		"fullname": name,
+		"dependentname": dependent,
+		"gender": gender,
+		"adhaar": adhaarint,
+		"email": emailid,
+		"dob": dateofbirth,
+		"account": accountinfo,
+		"contact": contact,
+		"address": address,
+		"applicationno": appno
+		});
+
+		var xhr1 = new XMLHttpRequest();
+		xhr1.withCredentials = true;
+
+		xhr1.addEventListener("readystatechange", function() {
+		if(this.readyState === 4) {
+		console.log(this.responseText);
+		}
+		});
+
+		xhr1.open("POST", "http://127.0.0.1:5000/validation");
+		xhr1.setRequestHeader("Content-Type", "application/json");
+
+		xhr1.send(data);
+		//Show message to customer
+		alert("Application Submitted Successfully, Your Application Number is: " +appno);
+	}
+	else
+	{
+		var applicationno = rs.fields(12);
+		alert("Record already exists,The Adhaar is linked with Application Number: " + applicationno);
+	}
+	rs.Close();
+	rs2.Close();
+	connection.Close();
+	
+  }
+});
+</script>
+  <title>Digital Form</title>
+</head>
+
+  <body>
+  <div class="container">
+    <h1 class="main-header">Solvathon Bank Account Application Form</h1>
+    <hr>
+    <form id="app-form" action="">
+	<fieldset class="sub-container" id="login-signup">
+        <button type="button" id="login" class="login">Login</button>
+		<button type="button" id="signup" class="signup">Sign Up</button>
+    </fieldset>
+	
+	<fieldset class="sub-container" id="logindetails">
+        <h2 class="sub-heading">Login</h2>
+		<label for="fullname" class="standard-label">
+          Application Number<span class="required">*</span>
+          <input class="standard-input" id="applno" type="text" placeholder="Application Number...">
+        </label>
+        <button type="button" id="loginapp" class="loginapp">Login</button>
+    </fieldset>
+	
+    <fieldset class="sub-container" id="basic-details">
+      <h2 class="sub-heading">Personal Information Capture</h2>
+      <hr>
+        <label for="dropdown" class="standard-label">
+          Title<span class="required">*</span>
+          <br>
+          <select  id="dropdown" class="standard-select" required>
+            <option value="select" disabled selected>Select Title</option>
+            <option value="Mr">Mr</option>
+            <option value="Mrs">Mrs</option>
+            <option value="Miss">Miss</option>
+          </select>
+        </label>
+        <label for="fullname" class="standard-label">
+          Full Name<span class="required">*</span>
+          <input class="standard-input" name="fullname" id="fullname" type="text" placeholder="Full name..." required>
+        </label>
+        <label for="dependentname" class="standard-label">
+          Father/Spouse Name<span class="required">*</span>
+          <input class="standard-input" name="dependentname" id="dependentname" type="text" placeholder="Father/Spouse name..." required>
+        </label>
+		<label for="adhaar" class="standard-label">
+          Adhaar Card Number<span class="required">*</span>
+          <input class="standard-input" name="adhaar" id="adhaaarcardnumber" type="text" placeholder="Adhaar Card Number..." maxlength="12" required>
+        </label>
+        <label for="email-address" class="standard-label">
+          Email<span class="required">*</span>
+          <input class="standard-input" id="email-address" type="email" placeholder="Your email address...">
+        </label>
+        <label for="DOB" class="standard-label">
+          Date of Birth<span class="required">*</span>
+          <input class="standard-input" type="date" name="DOB" id="DOB" required>
+        </label>
+        <label for="accounttype" class="standard-label">
+          What type of account are you applying for?<span class="required">*</span>
+          <br>
+          <select  id="account-select" class="standard-select" required>
+            <option value="select" disabled selected>Choose Account</option>
+            <option value="Savings">Savings Account</option>
+            <option value="Current">Current Account</option>
+            <option value="PPF">PPF Account</option>
+          </select>
+        </label>
+		<label for="phone-number" class="standard-label">
+          Phone Number<span class="required">*</span>
+          <input class="standard-input" type="tel" id="phone" name="phone" pattern='^\+?\d{10,12}' placeholder="Example: 9038686250" required>
+        </label>
+		<button type="button" id="resend-otp" class="show_hide2">Resend OTP</button>
+        <button type="button" id="show-otp" class="show_hide">Send OTP</button>
+      </fieldset>
+	  
+	  <fieldset class="sub-container" id="otp-check">
+        <h2 class="sub-heading">OTP Validation</h2>
+		<label for="line1" class="standard-label">
+            Enter OTP sent to your mobile<span class="required">*</span>
+            <input class="standard-input" type="text" id="otp" required>
+          </label>
+        <button type="button" id="show-address" class="show_hide3">Submit OTP</button>
+      </fieldset>
+      
+      <fieldset class="sub-container" id="address-history">
+        <h2 class="sub-heading">Address History</h2>
+        <hr>
+        <h3 class="small-heading">Are you currently an Indian resident?</h3>
+        <label for="yes" class="radio-label">
+          <input class="radio-input" name="UK-res" value="yes" id="yes" type="radio">Yes</input>
+        </label>
+        <label for="no" class="radio-label">
+          <input class="radio-input" name="UK-res" value="no" id="no" type="radio">No</input>
+        </label>
+        <p id="non-uk">We're really sorry. We currently only offer banking services to Indian residents.</p>
+        <div id="current-address">
+          <h3 class="small-heading">Current Address</h3>
+          <label for="line1" class="standard-label">
+            Address line 1<span class="required">*</span>
+            <input class="standard-input" type="text" id ="line1" required>
+          </label>
+          <label for="line2" class="standard-label">
+            Address line 2
+            <input class="standard-input" type="text" id ="line2">
+          </label>
+          <label for="town-city" class="standard-label">
+            Town/City<span class="required">*</span>
+            <input class="standard-input" type="text" id ="town" required>
+          </label>
+          <label for="country" class="standard-label">
+            Country
+            <input class="standard-input" type="text" id ="country">
+          </label>
+          <label for="postcode" class="standard-label">
+            Post Code<span class="required">*</span>
+            <input class="standard-input" type="text" id ="postalcode" maxlength="8" required>
+          </label>
+          <h3 class="small-heading">Have you lived at any other address within the last 5 years?</h3>
+          <label for="yes-prev" class="radio-label">
+            <input class="radio-input" name="UK-res" value="yes" id="yes-prev" type="radio">Yes</input>
+          </label>
+          <label for="no-prev" class="radio-label">
+            <input class="radio-input" name="UK-res" value="no" id="no-prev" type="radio">No</input>
+          </label>
+        </div>
+        <div id="previous-address">
+          <h3 class="small-heading">Previous Address</h3>
+          <label for="line1" class="standard-label">
+            Address line 1<span class="required">*</span>
+            <input class="standard-input" type="text">
+          </label>
+          <label for="line2" class="standard-label">
+            Address line 2
+            <input class="standard-input" type="text">
+          </label>
+          <label for="town-city" class="standard-label">
+            Town/City<span class="required">*</span>
+            <input class="standard-input" type="text">
+          </label>
+          <label for="county" class="standard-label">
+            Country
+            <input class="standard-input" type="text">
+          </label>
+          <label for="postcode" class="standard-label">
+            Post Code<span class="required">*</span>
+            <input class="standard-input" type="text" maxlength="8">
+          </label>
+        </div>
+        <button type="button" id="document-upload">Continue</button>
+      </fieldset>
+	  
+	  <fieldset class="sub-container" id="document-section">
+        <h2 class="sub-heading">Upload Documents</h2>
+		<label for="line1" class="standard-label">
+            Upload your photo ID proof<span class="required">*</span>
+            <input class="standard-input" type="file" accept="image/*" id="photoimg"  required>
+        </label>
+		<button type="button" id="photo-upload">Upload</button>
+		<p id="outputimg"></p>
+		<label for="line1" class="standard-label">
+            Upload your Adhaar Card Front Side Image<span class="required">*</span>
+            <input class="standard-input" type="file" accept="image/*" id="img_adhaar_front" required>
+        </label>  
+        <button type="button" id="adhaar-upload">Upload</button>
+		<label for="line1" class="standard-label">
+            Upload your Adhaar Card Back Side Image<span class="required">*</span>
+            <input class="standard-input" type="file" accept="image/*" id="img_adhaar_back" required>
+        </label>
+		<button type="button" id="get-consent">Upload</button>
+      </fieldset>
+
+      <fieldset class="sub-container" id="your-consent">
+        <h2 class="sub-heading">Your Consent</h2>
+        <hr>
+        <label class="standard-label" id="credit-search" for="credit-search">
+          Tick the box below to allow the bank to use the details you have provided to conduct a credit search if necessary.
+          <br>
+        <input type="checkbox" id="credit-click" name="credit-search"><br>
+        </label>
+        <label class="standard-label" for="info-request" id="info-request">
+          Tick the box below to allow the bank to contact you via email if further information is needed to progress your application.
+          <br>
+          <input type="checkbox" id="info-click" name="info-request"><br>
+        </label>
+        <input id="submit-app" type="submit" name="submit" value="Submit Application" onclick="logValues()">
+      </fieldset>
+    </form>
+  </div>
+</body>
+</html>
