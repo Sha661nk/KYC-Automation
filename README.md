@@ -1,2 +1,11 @@
 # KYC-Automation
-We (a team of four) built a KYC Automation system to automate the KYC validation process. This project aims to eliminate the manual interventions required to process a KYC. The solution includes a Web form, where user can provide their information along with their recent photos and Aadhaar ID (front & back). The information provided by the user is validated against the ID card. This process requivalidatinge of the ID Card. They first matched the face on the Aadhaar card to the provided photo. All the other card information is extracted via tesseract and validated against the UIDAI database. Only when all the data is matched is the user onboarding as a customer. For a detailed description, read the attached ppt in the main branch.    
+**Project Overview:** Our team of four has developed an innovative KYC Automation system designed to streamline and automate the Know Your Customer (KYC) validation process. Our primary goal is to minimize manual intervention, thus enhancing efficiency and accuracy in customer onboarding.
+
+## Key Features:
+
+- **Automated Validation:** Users can easily submit their personal details, recent photographs, and scans of their Aadhaar ID (both front and back) via a user-friendly web form.
+- **Intelligent Matching:** The system employs facial recognition technology to compare the photo on the Aadhaar card with the user's submitted photograph, ensuring identity consistency.
+- **Data Extraction and Verification:** Using Tesseract OCR, the solution extracts all pertinent information from the Aadhaar card. This data is then cross-referenced and validated against the UIDAI database for authenticity.
+- **Final Onboarding:** A customer is onboarded only after a successful match of all the data points, ensuring a thorough and reliable verification process.
+
+**Further Reading:** For a comprehensive understanding of our system, including its architecture and functionalities, please refer to the detailed PowerPoint presentation available in the main branch of this repository.
